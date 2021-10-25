@@ -2,37 +2,42 @@ package com.company.glpk;
 
 import org.gnu.glpk.*;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public class GlpkSolve {
 
+    public GlpkSolve() {
+    }
 
-    public GlpkSolve(){}
-
-    public void solve(){
+    public void solve() {
         glp_prob lp;
         glp_smcp parm;
         SWIGTYPE_p_int ind;
         SWIGTYPE_p_double val;
         int ret;
 
-        try{
+        try {
             lp = GLPK.glp_create_prob();
             GLPK.glp_set_prob_name(lp, "OptimalCutProblem");
             GLPK.glp_add_cols(lp, 4);
             //y1
-            GLPK.glp_set_col_name(lp,1,"y1");
-            GLPK.glp_set_col_kind(lp,1,GLPKConstants.GLP_CV);
+            GLPK.glp_set_col_name(lp, 1, "y1");
+            GLPK.glp_set_col_kind(lp, 1, GLPKConstants.GLP_CV);
             GLPK.glp_set_col_bnds(lp, 1, GLPKConstants.GLP_LO, 0.0, 0.0);
             //y2
-            GLPK.glp_set_col_name(lp,2,"y2");
-            GLPK.glp_set_col_kind(lp,2,GLPKConstants.GLP_CV);
+            GLPK.glp_set_col_name(lp, 2, "y2");
+            GLPK.glp_set_col_kind(lp, 2, GLPKConstants.GLP_CV);
             GLPK.glp_set_col_bnds(lp, 2, GLPKConstants.GLP_LO, 0.0, 0.0);
             //y3
-            GLPK.glp_set_col_name(lp,3,"y3");
-            GLPK.glp_set_col_kind(lp,3,GLPKConstants.GLP_CV);
+            GLPK.glp_set_col_name(lp, 3, "y3");
+            GLPK.glp_set_col_kind(lp, 3, GLPKConstants.GLP_CV);
             GLPK.glp_set_col_bnds(lp, 3, GLPKConstants.GLP_LO, 0.0, 0.0);
             //y4
-            GLPK.glp_set_col_name(lp,4,"y4");
-            GLPK.glp_set_col_kind(lp,4,GLPKConstants.GLP_CV);
+            GLPK.glp_set_col_name(lp, 4, "y4");
+            GLPK.glp_set_col_kind(lp, 4, GLPKConstants.GLP_CV);
             GLPK.glp_set_col_bnds(lp, 4, GLPKConstants.GLP_LO, 0.0, 0.0);
 
             // Allocate memory
@@ -42,7 +47,7 @@ public class GlpkSolve {
             GLPK.glp_add_rows(lp, 4);
 
             GLPK.glp_set_row_name(lp, 1, "c1");
-            GLPK.glp_set_row_bnds(lp, 1, GLPKConstants.GLP_UP,0,1);
+            GLPK.glp_set_row_bnds(lp, 1, GLPKConstants.GLP_UP, 0, 1);
             GLPK.intArray_setitem(ind, 1, 1);
             GLPK.doubleArray_setitem(val, 1, 2.);
             GLPK.glp_set_mat_row(lp, 1, 1, ind, val);
@@ -109,7 +114,7 @@ public class GlpkSolve {
             }
             // Free memory
             GLPK.glp_delete_prob(lp);
-        }catch (GlpkException ex) {
+        } catch (GlpkException ex) {
             ex.printStackTrace();
         }
     }
@@ -126,12 +131,39 @@ public class GlpkSolve {
         System.out.print(" = ");
         System.out.println(val);
         n = GLPK.glp_get_num_cols(lp);
-        for (i = 1; i <= n; i++) {
-            name = GLPK.glp_get_col_name(lp, i);
-            val = GLPK.glp_get_col_prim(lp, i);
-            System.out.print(name);
-            System.out.print(" = ");
-            System.out.println(val);
+
+        /*
+        FileWriter file = new FileWriter("bag.txt");
+        BufferedWriter buffer = new BufferedWriter(file);
+        */
+        try (FileWriter fw = new FileWriter("data/bag.txt", true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            for (i = 1; i <= n; i++) {
+                name = GLPK.glp_get_col_name(lp, i);
+                val = GLPK.glp_get_col_prim(lp, i);
+                System.out.print(name);
+                System.out.print(" = ");
+                System.out.println(val);
+                if (val > 0) {
+                    switch (name) {
+                        case "y1":
+                            out.println("1 45");
+                            break;
+                        case "y2":
+                            out.println("1 36");
+                            break;
+                        case "y3":
+                            out.println("1 31");
+                            break;
+                        case "y4":
+                            out.println("1 14");
+                            break;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            //exception handling left as an exercise for the reader
         }
     }
 
