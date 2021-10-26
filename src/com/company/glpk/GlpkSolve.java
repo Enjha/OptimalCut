@@ -83,6 +83,7 @@ public class GlpkSolve {
 
             if (constraints.size() != 0) {
                 int i = 1;
+
                 ArrayList<Integer> tmpCst = new ArrayList<>();
                 for (String constraint : constraints) {
                     if (constraint.equals("#")) {
@@ -127,6 +128,7 @@ public class GlpkSolve {
                         }
                         GLPK.glp_set_mat_row(lp, 4 + i, index - 1, ind, val);
                         i++;
+                        tmpCst = new ArrayList<>();
                     } else {
                         tmpCst.add(Integer.parseInt(constraint));
                     }
@@ -223,19 +225,4 @@ public class GlpkSolve {
         }
         return count;
     }
-
-    /*
-    public boolean isFinish(glp_prob lp){
-        int i;
-        int n;
-        String name;
-        double val;
-
-    }
-
-     */
-
-    /*
-
-     */
 }
