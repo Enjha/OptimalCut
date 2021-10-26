@@ -191,16 +191,16 @@ public class GlpkSolve {
                 if (val > 0) {
                     switch (name) {
                         case "y1":
-                            outglpk.println("1 45");
+                            outglpk.println("45 1");
                             break;
                         case "y2":
-                            outglpk.println("1 36");
+                            outglpk.println("36 1");
                             break;
                         case "y3":
-                            outglpk.println("1 31");
+                            outglpk.println("31 1");
                             break;
                         case "y4":
-                            outglpk.println("1 14");
+                            outglpk.println("14 1");
                             break;
                     }
                 } else c++;

@@ -15,17 +15,17 @@ public class AlgoClassic {
     public void start() {
         ArrayList<Item> listItems = o.initiateValue();
         listItems.sort(new CompareByRating());
-        ArrayList<Integer> itemStealed = new ArrayList<>();
+        int weightLimit = o.getWeihgtLimit();
         int weightStealerBag = 0;
         int i = listItems.size();
-        while (o.getWeihgtLimit() > weightStealerBag) {
-            o.setWeihgtLimit((int) (o.getWeihgtLimit() - listItems.get(i % listItems.size()).getWeight()));
-            itemStealed.add(listItems.get(i % listItems.size()).getValue());
-            weightStealerBag += listItems.get(i % listItems.size()).getValue();
-            constraints.add(String.valueOf(listItems.get(i % listItems.size()).getValue()));
+        while (weightLimit > weightStealerBag) {
+            System.err.println(listItems.get(i% listItems.size()).getWeight());
+            weightLimit -= listItems.get(i % listItems.size()).getWeight();
+            weightStealerBag += listItems.get(i % listItems.size()).getWeight();
+            constraints.add(String.valueOf(listItems.get(i % listItems.size()).getWeight()));
             i--;
         }
-        System.out.println(itemStealed + " " + constraints);
+        System.err.println(constraints+" || " + weightLimit);
         constraints.add("#");
     }
 

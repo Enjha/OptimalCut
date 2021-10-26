@@ -13,7 +13,7 @@ public class Bag {
         this.weihgtLimit = weihgtLimit;
     }
 
-    public double getWeihgtLimit() {
+    public int getWeihgtLimit() {
         return weihgtLimit;
     }
 
