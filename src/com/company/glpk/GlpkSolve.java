@@ -6,13 +6,14 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 public class GlpkSolve {
 
     public GlpkSolve() {
     }
 
-    public void solve() {
+    public boolean solve(ArrayList<String> constraints) {
         glp_prob lp;
         glp_smcp parm;
         SWIGTYPE_p_int ind;
@@ -44,7 +45,7 @@ public class GlpkSolve {
             ind = GLPK.new_intArray(4);
             val = GLPK.new_doubleArray(2);
 
-            GLPK.glp_add_rows(lp, 4);
+            GLPK.glp_add_rows(lp, 4 + countCharacter("#", constraints));
 
             GLPK.glp_set_row_name(lp, 1, "c1");
             GLPK.glp_set_row_bnds(lp, 1, GLPKConstants.GLP_UP, 0, 1);
@@ -80,15 +81,57 @@ public class GlpkSolve {
             GLPK.doubleArray_setitem(val, 3, 1.);
             GLPK.glp_set_mat_row(lp, 4, 3, ind, val);
 
-           /* GLPK.glp_set_row_name(lp, 5, "c5");
-            GLPK.glp_set_row_bnds(lp, 5, GLPKConstants.GLP_UP, 0, 1);
-            GLPK.intArray_setitem(ind, 1, 1);
-            GLPK.intArray_setitem(ind, 2, 2);
-            GLPK.intArray_setitem(ind, 3, 3);
-            GLPK.doubleArray_setitem(val, 1, 1.);
-            GLPK.doubleArray_setitem(val, 2, 1.);
-            GLPK.doubleArray_setitem(val, 3, 1.);
-            GLPK.glp_set_mat_row(lp, 5, 3, ind, val); */
+            if (constraints.size() != 0) {
+                int i = 1;
+                ArrayList<Integer> tmpCst = new ArrayList<>();
+                for (String constraint : constraints) {
+                    if (constraint.equals("#")) {
+                        int y1 = 0, y2 = 0, y3 = 0, y4 = 0;
+                        GLPK.glp_set_row_name(lp, 4 + i, "c" + (4 + i));
+                        GLPK.glp_set_row_bnds(lp, 4 + i, GLPKConstants.GLP_UP, 0, 1);
+                        for (Integer j : tmpCst) {
+                            switch (j) {
+                                case 45:
+                                    y1++;
+                                    break;
+                                case 36:
+                                    y2++;
+                                    break;
+                                case 31:
+                                    y3++;
+                                    break;
+                                case 14:
+                                    y4++;
+                                    break;
+                            }
+                        }
+                        int index = 1;
+                        if (y1 > 0) {
+                            GLPK.intArray_setitem(ind, index, 1);
+                            GLPK.doubleArray_setitem(val, index, y1);
+                            index++;
+                        }
+                        if (y2 > 0) {
+                            GLPK.intArray_setitem(ind, index, 2);
+                            GLPK.doubleArray_setitem(val, index, y2);
+                            index++;
+                        }
+                        if (y3 > 0) {
+                            GLPK.intArray_setitem(ind, index, 3);
+                            GLPK.doubleArray_setitem(val, index, y3);
+                            index++;
+                        }
+                        if (y4 > 0) {
+                            GLPK.intArray_setitem(ind, index, 4);
+                            GLPK.doubleArray_setitem(val, index, y4);
+                        }
+                        GLPK.glp_set_mat_row(lp, 4 + i, index - 1, ind, val);
+                        i++;
+                    } else {
+                        tmpCst.add(Integer.parseInt(constraint));
+                    }
+                }
+            }
 
             // Free memory
             GLPK.delete_intArray(ind);
@@ -107,23 +150,25 @@ public class GlpkSolve {
             GLPK.glp_init_smcp(parm);
             ret = GLPK.glp_simplex(lp, parm);
 
+
             if (ret == 0) {
-                write_lp_solution(lp);
+                return write_lp_solution(lp);
             } else {
                 System.out.println("The problem could not be solved");
             }
-            // Free memory
             GLPK.glp_delete_prob(lp);
-        } catch (GlpkException ex) {
+        } catch (GlpkException | IOException ex) {
             ex.printStackTrace();
         }
+        return false;
     }
 
-    static void write_lp_solution(glp_prob lp) {
+    static boolean write_lp_solution(glp_prob lp) throws IOException {
         int i;
         int n;
         String name;
         double val;
+        int c = 0;
 
         name = GLPK.glp_get_obj_name(lp);
         val = GLPK.glp_get_obj_val(lp);
@@ -132,13 +177,9 @@ public class GlpkSolve {
         System.out.println(val);
         n = GLPK.glp_get_num_cols(lp);
 
-        /*
-        FileWriter file = new FileWriter("bag.txt");
-        BufferedWriter buffer = new BufferedWriter(file);
-        */
-        try (FileWriter fw = new FileWriter("data/bag.txt", true);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw)) {
+        FileWriter fwGlpk = new FileWriter("data/bag.txt", true);
+        BufferedWriter bwGlpk = new BufferedWriter(fwGlpk);
+        try (PrintWriter outglpk = new PrintWriter(bwGlpk)) {
             for (i = 1; i <= n; i++) {
                 name = GLPK.glp_get_col_name(lp, i);
                 val = GLPK.glp_get_col_prim(lp, i);
@@ -148,23 +189,53 @@ public class GlpkSolve {
                 if (val > 0) {
                     switch (name) {
                         case "y1":
-                            out.println("1 45");
+                            outglpk.println("1 45");
                             break;
                         case "y2":
-                            out.println("1 36");
+                            outglpk.println("1 36");
                             break;
                         case "y3":
-                            out.println("1 31");
+                            outglpk.println("1 31");
                             break;
                         case "y4":
-                            out.println("1 14");
+                            outglpk.println("1 14");
                             break;
                     }
-                }
+                } else c++;
             }
-        } catch (IOException e) {
-            //exception handling left as an exercise for the reader
+            outglpk.flush();
+            if (c == n) {
+                return false;
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
+        return true;
     }
 
+    public int countCharacter(String s, ArrayList<String> constraints) {
+        int count = 0;
+        if (constraints.size() == 0)
+            return 0;
+        for (String str : constraints) {
+            if (str.equals(s))
+                count++;
+        }
+        return count;
+    }
+
+    /*
+    public boolean isFinish(glp_prob lp){
+        int i;
+        int n;
+        String name;
+        double val;
+
+    }
+
+     */
+
+    /*
+
+     */
 }

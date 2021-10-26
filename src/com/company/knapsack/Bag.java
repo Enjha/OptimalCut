@@ -26,9 +26,10 @@ public class Bag {
         ArrayList<Item> listItems = new ArrayList<>();
         try {
             String sCurrentLine;
-            br = new BufferedReader(new FileReader("bag.txt"));
+            br = new BufferedReader(new FileReader("data/bag.txt"));
             while ((sCurrentLine = br.readLine()) != null) {
-                listItems.add(new Item(Integer.parseInt(sCurrentLine.split(" ")[0]), Integer.parseInt(sCurrentLine.split(" ")[1])));
+                if(!sCurrentLine.equals(""))
+                    listItems.add(new Item(Integer.parseInt(sCurrentLine.split(" ")[0]), Integer.parseInt(sCurrentLine.split(" ")[1])));
             }
         } catch (IOException e) {
             e.printStackTrace();
